@@ -83,7 +83,7 @@ jobs:
           
           # 5. Conectar Tailscale
           curl -fsSL https://tailscale.com/install.sh | sh
-          sudo tailscale up --authkey=tskey-auth-kgdrtByhK511CNTRL-Y2ZDXXqpthLQ4Z4EWxgahLwh9ChxVcnx --hostname=Galaxy-Testing
+          sudo tailscale up --authkey=tskey-auth-k1Kj1pjti711CNTRL-ntszFQCDkeV4MadiX7HUeVZ6PMyEJwLoS --hostname=Galaxy-Testing
           
           tailscale ip -4 > ts_ip.txt
 
