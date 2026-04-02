@@ -27,7 +27,7 @@ jobs:
 
       - name: "3. Preparar Almacenamiento"
         run: |
-          if[ ! -d "VPS_DATA" ]; then
+          if [ ! -d "VPS_DATA" ]; then
             echo "🆕 Creando almacenamiento..."
             mkdir -p VPS_DATA
             echo "Bienvenido a tu nueva VPS. Sube aquí los archivos de tu bot." > VPS_DATA/LEEME.txt
