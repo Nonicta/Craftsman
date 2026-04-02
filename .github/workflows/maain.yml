@@ -1,4 +1,4 @@
-name: VPS ETERNA - INTERFAZ PREMIUM (VS CODE WEB)
+name: VPS ETERNA - INTERFAZ PREMIUM (HTTP FORZADO)
 
 on:
   workflow_dispatch:
@@ -33,64 +33,58 @@ jobs:
             echo "Bienvenido a tu nueva VPS. Sube aquí los archivos de tu bot." > VPS_DATA/LEEME.txt
           fi
 
-      - name: "4. Configurar Usuario ROOT"
-        run: |
-          echo "root:rootpass" | sudo chpasswd
-          RUTA_ABSOLUTA=$(pwd)/VPS_DATA
-          echo "cd $RUTA_ABSOLUTA" | sudo tee -a /root/.bashrc
-
-      - name: "5. Instalar VS Code Web (La Bestia Premium)"
+      - name: "4. Instalar VS Code Web"
         run: |
           echo "⏳ Instalando Visual Studio Code en la Web..."
           curl -fsSL https://code-server.dev/install.sh | sh
           
-          # Arrancar VS Code como ROOT en el puerto local 8080
-          # La contraseña para entrar será: rootpass
-          sudo PASSWORD="rootpass" code-server \
+          # Arrancar VS Code. OJO: Contraseña eliminada, ya no es necesaria.
+          sudo code-server \
             --bind-addr 127.0.0.1:8080 \
-            --auth password \
+            --auth none \
             --user-data-dir $(pwd)/VPS_DATA \
             $(pwd)/VPS_DATA > code-server.log 2>&1 &
           
           sleep 5
 
-      - name: "6. Conectar a TU DOMINIO (Serveo)"
+      - name: "5. Conectar a TU DOMINIO (HTTP Forzado)"
         run: |
-          # Aquí está tu dominio exacto
+          # Tu dominio exacto
           DOMINIO="tl.mcpe.qzz.io"
           
-          echo "Conectando $DOMINIO a Serveo..."
-          # Generar llave SSH temporal para Serveo
+          echo "Conectando $DOMINIO a Localhost.run..."
+          # Generar llave SSH temporal
           ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" -q
           
-          # Abrir el túnel: Conecta tu dominio al puerto 8080 (donde está VS Code)
-          ssh -o StrictHostKeyChecking=no -R $DOMINIO:80:localhost:8080 serveo.net > serveo.log 2>&1 &
+          # 🚀 ESTA ES LA MAGIA: Conecta tu dominio al puerto 8080 (donde está VS Code)
+          # Localhost.run es más estable para HTTP directo.
+          ssh -o StrictHostKeyChecking=no -R $DOMINIO:80:localhost:8080 ssh.localhost.run > tunnel.log 2>&1 &
           
-          sleep 5
+          sleep 10
 
-      - name: "7. Datos de Acceso"
+      - name: "6. Datos de Acceso"
         run: |
           echo "=================================================================="
-          echo "✅ VPS OPERATIVA - INTERFAZ PREMIUM ACTIVA"
+          echo "✅ VPS OPERATIVA - ACCESO WEB DIRECTO"
           echo "=================================================================="
-          echo "🌐 URL     : https://tl.mcpe.qzz.io"
-          echo "🔑 Clave   : rootpass"
-          echo "=================================================================="
-          echo "💡 TRUCO PARA EL MÓVIL (Ctrl+C):"
-          echo "No necesitas teclado virtual. Para detener tu bot (Ctrl+C),"
-          echo "solo toca el ícono del basurero 🗑️ en la pestaña de la terminal."
+          echo "La conexión ya no usa HTTPS, sino HTTP. ¡No fallará!"
+          echo ""
+          echo "🌐 URL DE ACCESO (Siempre la misma):"
+          echo "   http://tl.mcpe.qzz.io"
+          echo ""
+          echo "🔑 SIN CONTRASEÑA: Entras directamente a la interfaz."
           echo "=================================================================="
           
           sleep 20700 
 
-      - name: "8. Guardar en la Nube (Caché)"
+      - name: "7. Guardar en la Nube (Caché)"
         if: always()
         uses: actions/cache/save@v4
         with:
           path: VPS_DATA
           key: vps-storage-${{ github.run_id }}
 
-      - name: "9. Reinicio Automático (Bucle)"
+      - name: "8. Reinicio Automático (Bucle)"
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
