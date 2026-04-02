@@ -1,0 +1,99 @@
+name: VPS ETERNA - INTERFAZ PREMIUM (VS CODE WEB)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  vps-session:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: "1. Preparar Entorno"
+        uses: actions/checkout@v4
+
+      - name: "2. Recuperar Archivos (Caché)"
+        id: cache-vps
+        uses: actions/cache/restore@v4
+        with:
+          path: VPS_DATA
+          key: vps-storage-${{ github.run_id }}
+          restore-keys: |
+            vps-storage-
+
+      - name: "3. Preparar Almacenamiento"
+        run: |
+          if[ ! -d "VPS_DATA" ]; then
+            echo "🆕 Creando almacenamiento..."
+            mkdir -p VPS_DATA
+            echo "Bienvenido a tu nueva VPS. Sube aquí los archivos de tu bot." > VPS_DATA/LEEME.txt
+          fi
+
+      - name: "4. Configurar Usuario ROOT"
+        run: |
+          echo "root:rootpass" | sudo chpasswd
+          RUTA_ABSOLUTA=$(pwd)/VPS_DATA
+          echo "cd $RUTA_ABSOLUTA" | sudo tee -a /root/.bashrc
+
+      - name: "5. Instalar VS Code Web (La Bestia Premium)"
+        run: |
+          echo "⏳ Instalando Visual Studio Code en la Web..."
+          curl -fsSL https://code-server.dev/install.sh | sh
+          
+          # Arrancar VS Code como ROOT en el puerto local 8080
+          # La contraseña para entrar será: rootpass
+          sudo PASSWORD="rootpass" code-server \
+            --bind-addr 127.0.0.1:8080 \
+            --auth password \
+            --user-data-dir $(pwd)/VPS_DATA \
+            $(pwd)/VPS_DATA > code-server.log 2>&1 &
+          
+          sleep 5
+
+      - name: "6. Conectar a TU DOMINIO (Serveo)"
+        run: |
+          # Aquí está tu dominio exacto
+          DOMINIO="tl.mcpe.qzz.io"
+          
+          echo "Conectando $DOMINIO a Serveo..."
+          # Generar llave SSH temporal para Serveo
+          ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" -q
+          
+          # Abrir el túnel: Conecta tu dominio al puerto 8080 (donde está VS Code)
+          ssh -o StrictHostKeyChecking=no -R $DOMINIO:80:localhost:8080 serveo.net > serveo.log 2>&1 &
+          
+          sleep 5
+
+      - name: "7. Datos de Acceso"
+        run: |
+          echo "=================================================================="
+          echo "✅ VPS OPERATIVA - INTERFAZ PREMIUM ACTIVA"
+          echo "=================================================================="
+          echo "🌐 URL     : https://tl.mcpe.qzz.io"
+          echo "🔑 Clave   : rootpass"
+          echo "=================================================================="
+          echo "💡 TRUCO PARA EL MÓVIL (Ctrl+C):"
+          echo "No necesitas teclado virtual. Para detener tu bot (Ctrl+C),"
+          echo "solo toca el ícono del basurero 🗑️ en la pestaña de la terminal."
+          echo "=================================================================="
+          
+          sleep 20700 
+
+      - name: "8. Guardar en la Nube (Caché)"
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: VPS_DATA
+          key: vps-storage-${{ github.run_id }}
+
+      - name: "9. Reinicio Automático (Bucle)"
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run "main.yml" --ref main
+          echo "Nueva máquina arrancando..."
