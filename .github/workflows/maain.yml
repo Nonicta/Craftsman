@@ -30,7 +30,7 @@ jobs:
           if [ ! -d "VPS_DATA" ]; then
             echo "🆕 Creando almacenamiento..."
             mkdir -p VPS_DATA
-            echo "Bienvenido a tu nueva VPS. Sube aquí los archivos de tu bot." > VPS_DATA/LEEME.txt
+            echo "Bienvenido a tu nueva VPS." > VPS_DATA/LEEME.txt
           fi
 
       - name: "4. Instalar VS Code Web"
@@ -38,7 +38,7 @@ jobs:
           echo "⏳ Instalando Visual Studio Code en la Web..."
           curl -fsSL https://code-server.dev/install.sh | sh
           
-          # Arrancar VS Code. OJO: Contraseña eliminada, ya no es necesaria.
+          # Arrancar VS Code sin contraseña
           sudo code-server \
             --bind-addr 127.0.0.1:8080 \
             --auth none \
@@ -47,18 +47,17 @@ jobs:
           
           sleep 5
 
-      - name: "5. Conectar a TU DOMINIO (HTTP Forzado)"
+      - name: "5. Conectar a TU DOMINIO (Sintaxis Corregida)"
         run: |
           # Tu dominio exacto
           DOMINIO="tl.mcpe.qzz.io"
           
           echo "Conectando $DOMINIO a Localhost.run..."
-          # Generar llave SSH temporal
           ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" -q
           
-          # 🚀 ESTA ES LA MAGIA: Conecta tu dominio al puerto 8080 (donde está VS Code)
-          # Localhost.run es más estable para HTTP directo.
-          ssh -o StrictHostKeyChecking=no -R $DOMINIO:80:localhost:8080 ssh.localhost.run > tunnel.log 2>&1 &
+          # 👇👇👇 ESTA ES LA CORRECCIÓN MÁGICA 👇👇👇
+          # Le decimos a localhost.run qué dominio usar en la misma conexión
+          ssh -o StrictHostKeyChecking=no -R 80:localhost:8080 $DOMINIO@ssh.localhost.run > tunnel.log 2>&1 &
           
           sleep 10
 
@@ -67,8 +66,6 @@ jobs:
           echo "=================================================================="
           echo "✅ VPS OPERATIVA - ACCESO WEB DIRECTO"
           echo "=================================================================="
-          echo "La conexión ya no usa HTTPS, sino HTTP. ¡No fallará!"
-          echo ""
           echo "🌐 URL DE ACCESO (Siempre la misma):"
           echo "   http://tl.mcpe.qzz.io"
           echo ""
